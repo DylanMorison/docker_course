@@ -80,3 +80,54 @@ docker exec -it c28b1e985ed3 npm run test
 ```
 Now you should be able to run tests when they change! However this is more of a quick fix. Lets explore some other options.
 
+A "better" option would be to set up volumes for the test suites. As such:
+
+```dockerfile
+#6-73 docker-compose to automate lengthy docker run command using volumes inter alia
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    # web as server/container name - build context (. - could be path) pwd with custom Dockerfile name
+    ports:
+      - "3000:3000"
+    volumes:
+      # (1) do *not* try to map a folder against /app/node_modules in the container;
+      - /app/node_modules
+      # (2) map current working directory (outside container):/app folder in container
+      - .:/app
+  tests: 
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes: 
+      - /app/node_modules
+      - .:/app
+    command: ["npm", "run", "test"]
+```
+
+However, we are left with the same problem of not attaching to `stdin`, so we cannot rerun tests, or enter any commands to the test suites.  We can run
+```bash
+docker attach <CONTAINER_ID>
+```
+to attach to the primary process inside a container. Unfortunetly, this will not work with docker compose.
+
+```Dockerfile
+# Open sh shell inz
+docker exec -it <Docker Image> sh
+```
+
+# Production
+
+We will use nginx and Docker for production. There will be two phases, a build phase and a run phase.
+<img src="./assets/phases.png">
+
+# Travis CI
+The purpose of Travis CI is to run our test suite 
+Here is what we need to tell Travis in our development workflow:
+- Tell Travis we need a copy of docker running
+- Build our image using Dockerfile.dev
+- Tell Travis how to run our test suite
+- Tell Travis how to deploy our code to AWS

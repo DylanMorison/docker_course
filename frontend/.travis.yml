@@ -1,0 +1,24 @@
+language: generic
+
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t dozer1234/docker-react -f Dockerfile.dev .
+
+script:
+  - docker run -e CI=true dozer1234/docker-react npm run test
+
+deploy:
+  provider: elasticbeanstalk
+  region: "us-west-2"
+  app: "docker-react"
+  env: "Dockerreact-env"
+  bucket_name: "elasticbeanstalk-us-west-2-621612569807"
+  bucket_path: "docker-react"
+  on:
+    branch: master
+  access_key_id: $AWS_access_key_id
+  secret_access_key: $AWS_secret_access_key
+  
