@@ -7,6 +7,10 @@ metadata:
 spec:
   # the number of pods this deployment will create
   replicas: 1
+  # this works similarly to the selector in our service config file.
+  # When a deployment creates a pod it does not directly maintain it. Instead it
+  # reaches out to the k8s api on master to actually create pods. Once a pod is created
+  # the deployment gets a handle on the created pod using the following selector:
   selector:
     matchLabels:
       component: web
@@ -17,8 +21,9 @@ spec:
       labels:
         component: web
     spec:
+      # each pod will contain a container with the following configuration:
       containers:
         - name: client
           image: stephengrider/multi-client
           ports:
-            - containerPort: 3000
+            - containerPort: 9999
